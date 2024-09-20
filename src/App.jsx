@@ -1,95 +1,84 @@
-import { useEffect, useState } from 'react';
+import { Container, Nav, Navbar } from "react-bootstrap";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
+import useLocalStorage from "use-local-storage";
+import { TodoContext } from "./contexts/TodoContext";
+import Home from "./pages/Home";
+import AddTodo from "./pages/AddTodo";
+import EditTodo from "./pages/EditTodo";
+import ErrorPage from "./pages/ErrorPage";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Logout from "./pages/Logout";
+import { AuthContext } from "./contexts/AuthContex";
+import RequireAuth from "./components/RequireAuth";
+import logo from './assets/tec-logo.png';
 
-function UserData({ userInfoData }) {
+function Layout() {
   return (
-    <ul>
-      {userInfoData.map((item) => {
-        const name = item.name;
-        const email = item.email;
-        const body = item.body;
-
-        return (
-          <li key={name}>
-            <strong>{`Name: ${name}`}</strong>
-            <p>{`Email: ${email.toLowerCase()}`}</p>
-            <p>{`Address: ${body}`}</p>
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <Navbar bg="light" variant="light">
+        <Container >
+          <Navbar.Brand href="/">
+            <img
+              src={logo}
+              alt="Logo The EAGLE Center"
+              width="30"
+              height="30"
+              className="d-inline-block align-top"
+            />{' '}
+            <strong>Navigate your PhD!</strong>
+          </Navbar.Brand>
+          <Nav>
+            <Nav.Link href="/dashboard">
+              <i className="bi bi-list-check" style={{ fontSize: "22px" }} >Dashboard</i>
+            </Nav.Link>
+            <Nav.Link href="/add">
+              <i className="bi bi-plus-square" style={{ fontSize: "22px" }} >Add Goals</i>
+            </Nav.Link>
+            <Nav.Link href="/logout">
+              <i className="bi bi-x-square-fill" style={{  fontSize: "22px" }} >Logout</i>
+            </Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar >
+      <Outlet />
+    </>
   );
 }
 
-async function fetchUserInfoData(userId) {
-  const response = await fetch(
-    `https://jsonplaceholder.typicode.com/users?userId=${userId}`
-  );
-  const data = await response.json();
-  return data;
-}
-
-function App() {
-  const [filterUserId, setFilterUserId] = useState(''); // Store the input value
-  const [filteredUserId, setFilteredUserId] = useState(''); // Store the userId that is being fetched
-  const [loading, setLoading] = useState(false);
-  const [userInfoData, setUserInfoData] = useState([]);
-  const [error, setError] = useState(null); // Store any potential errors
-
-  useEffect(() => {
-    if (filteredUserId) {
-      setLoading(true);
-      fetchUserInfoData(filteredUserId)
-        .then((data) => {
-          setUserInfoData(data);
-          setError(null); // Clear any previous errors
-        })
-        .catch((error) => setError(error.message))
-        .finally(() => setLoading(false));
-    }
-  }, [filteredUserId]);
-
-  const handleInputChange = (event) => {
-    setFilterUserId(event.target.value);
-  };
-
-  const handleFormSubmit = (event) => {
-    event.preventDefault(); // Prevent form submission from reloading the page
-
-    if (filterUserId.trim() === '' || isNaN(filterUserId)) {
-      setError('Please enter a valid numeric user ID.');
-    } else {
-      setError(null); // Clear any previous errors
-      setFilteredUserId(filterUserId); // Trigger the fetching of data
-    }
-  };
+export default function App() {
+  const [todos, setTodos] = useLocalStorage("todos", []);
+  const [token, setToken] = useLocalStorage("token", null);
 
   return (
-    <div>
-      <h1>User Data Information App</h1>
-      <h3>with user input filter option</h3>
-
-      <form onSubmit={handleFormSubmit}>
-        <label htmlFor="userId">Enter User ID:</label>
-        <input
-          type="text"
-          id="userId"
-          value={filterUserId}
-          onChange={handleInputChange}
-          placeholder="Enter User ID"
-        />
-        <button type="submit">Filter Tasks</button>
-      </form>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {userInfoData.length > 0 && (
-        <>
-          <h3>{`User's Data Information:`}</h3>
-          <UserData userInfoData={userInfoData} />
-        </>
-      )}
-    </div>
+    <AuthContext.Provider value={{ token, setToken }}>
+      <TodoContext.Provider value={{ todos, setTodos }}>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard"
+                element={
+                  <RequireAuth>
+                    <Dashboard />
+                  </RequireAuth>
+                }
+              />
+              <Route path="add"
+                element={
+                  <RequireAuth>
+                    <AddTodo />
+                  </RequireAuth>
+                }
+              />
+              <Route path="*" element={<ErrorPage />} />
+              <Route path="/edit/:id" element={<EditTodo />} />
+              <Route path="/logout" element={<Logout />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </TodoContext.Provider>
+    </AuthContext.Provider>
   );
 }
-
-export default App;

@@ -30,13 +30,13 @@ function Layout() {
           </Navbar.Brand>
           <Nav>
             <Nav.Link href="/dashboard">
-              <i className="bi bi-list-check" style={{ fontSize: "22px" }} >Dashboard</i>
+              <i className="bi bi-list-check" style={{ fontSize: "22px" }} ></i>
             </Nav.Link>
             <Nav.Link href="/add">
-              <i className="bi bi-plus-square" style={{ fontSize: "22px" }} >Add Goals</i>
+              <i className="bi bi-plus-square" style={{ fontSize: "22px" }} ></i>
             </Nav.Link>
             <Nav.Link href="/logout">
-              <i className="bi bi-x-square-fill" style={{  fontSize: "22px" }} >Logout</i>
+              <i className="bi bi-x-square-fill" style={{  fontSize: "22px" }} ></i>
             </Nav.Link>
           </Nav>
         </Container>
